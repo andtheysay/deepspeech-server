@@ -65,7 +65,7 @@ def make_driver(loop=None):
                 if type(item) is SpeechToText:
                     if ds_model is not None:
                         try:
-                            _, audio = wav.read(io.BytesIo(read_mp3(item.data)))
+                            _, audio = wav.read(io.BytesI)(read_mp3(item.data)))
                             # convert to mono.
                             # todo: move to a component or just a function here
                             if len(audio.shape) > 1:
