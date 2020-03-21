@@ -8,6 +8,7 @@ from cyclotron_std.logging import Log
 from deepspeech import Model
 
 import pydub
+import scipy.io.wavfile as wav
 
 Sink = namedtuple('Sink', ['speech'])
 Source = namedtuple('Source', ['text', 'log'])
@@ -19,21 +20,13 @@ FeaturesParameters.__new__.__defaults__ = (500, 0.75, 1.85)
 Initialize = namedtuple('Initialize', ['model', 'lm', 'trie', 'features'])
 SpeechToText = namedtuple('SpeechToText', ['data', 'context'])
 
-# Sourc eevents
+# Source events
 TextResult = namedtuple('TextResult', ['text', 'context'])
 TextError = namedtuple('TextError', ['error', 'context'])
 
 # https://stackoverflow.com/questions/53633177/how-to-read-a-mp3-audio-file-into-a-numpy-array-save-a-numpy-array-to-mp3/53633178
 def read_mp3(f, normalized=False):
-    """MP3 to numpy array"""
-    a = pydub.AudioSegment.from_mp3(f)
-    y = np.array(a.get_array_of_samples())
-    if a.channels == 2:
-        y = y.reshape((-1, 2))
-    if normalized:
-        return a.frame_rate, np.float32(y) / 2**15
-    else:
-        return a.frame_rate, y
+    return pydub.AudioSegment.from_mp3(f)
 
 def make_driver(loop=None):
     def driver(sink):
@@ -72,7 +65,7 @@ def make_driver(loop=None):
                 if type(item) is SpeechToText:
                     if ds_model is not None:
                         try:
-                            _, audio = read_mp3(io.BytesIO(item.data))
+                            _, audio = wav.read(io.BytesIo(read_mp3(item.data)))
                             # convert to mono.
                             # todo: move to a component or just a function here
                             if len(audio.shape) > 1:
